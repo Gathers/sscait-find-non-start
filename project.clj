@@ -1,5 +1,5 @@
 (defproject sscait-find-non-start "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
+  :description "A quick and dirty Clojure script for finding games where the replay is only available for one bot."
   :url "http://example.com/FIXME"
   :license {:name "The Unlicense"
             :url "https://unlicense.org/"}
