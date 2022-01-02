@@ -36,13 +36,14 @@
                          (map #(into {} {:bot (first (:content %)) :url (:href (:attrs %))})))
       bots-with-games (map #(conj % (get-games-for %)) bots-with-url)
       all-games (flatten (map vec (map :games bots-with-games)))
+      total-games (count (distinct all-games))
       all-text (distinct (flatten (map vec (map :text bots-with-games))))
       dropped-games (->> all-games
                          frequencies
                          (filter #(not (= 2 (last %))))
                          (mapv first)
                          set)]
-  (println "Found" (count dropped-games) "dropped games out of a total of" (count all-games) "games from" (count bots-with-url) "bots.")
+  (println "Found" (count dropped-games) "dropped games out of a total of" total-games "games from" (count bots-with-url) "bots.")
   (->> all-text
        (filter #(contains? dropped-games (Integer/parseInt (re-find #"\d+" %))))
        sort))
