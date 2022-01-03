@@ -4,4 +4,5 @@
   :license {:name "The Unlicense"
             :url "https://unlicense.org/"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [enlive "1.1.6"]])
+                 [org.clojure/data.json "2.4.0"]
+                 [clj-http "3.12.3"]])
