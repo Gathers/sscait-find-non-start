@@ -12,7 +12,7 @@
                                                                     "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11"))
                                          .getContent)]
                (println "Fetched" url)
-               (Thread/sleep 1000)
+               (Thread/sleep 200)
                (html/html-resource inputstream)))))
 
 (defn get-games-for
@@ -29,11 +29,8 @@
     {:games (set games) :text (set games-with-text)}))
 
 (let [content (fetch-url sscait-scores-url)
-      bots-with-url (->> (html/select content [:table#bot_list :tr :a])
-                         (filter #(and (string? (first (:content %)))
-                                       (nil? (:target (:attrs %)))))
-                         ;(take 4)
-                         (map #(into {} {:bot (first (:content %)) :url (:href (:attrs %))})))
+      bot-tds (html/select content [:table#bot_list :td.name_portrait])
+      bots-with-url (map #(into {} {:bot (html/text %) :url (:href (:attrs (first (:content %))))}) bot-tds)
       bots-with-games (map #(conj % (get-games-for %)) bots-with-url)
       all-games (flatten (map vec (map :games bots-with-games)))
       total-games (count (distinct all-games))
@@ -43,7 +40,7 @@
                          (filter #(not (= 2 (last %))))
                          (mapv first)
                          set)]
-  (println "Found" (count dropped-games) "dropped games out of a total of" total-games "games from" (count bots-with-url) "bots.")
+  (println "Found" (count dropped-games) "possibly dropped games out of a total of" total-games "games from" (count bots-with-url) "bots.")
   (->> all-text
        (filter #(contains? dropped-games (Integer/parseInt (re-find #"\d+" %))))
        sort))
