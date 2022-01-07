@@ -50,11 +50,15 @@
                             (filter #(not (= 2 (last %))))
                             (mapv first)
                             set)
-      dropped-games (filter #(contains? dropped-game-ids (:id %)) games)]
-  (println "Found" (count dropped-games) "possibly dropped games out of a total of" total-games "games from" (count bots) "bots.")
+      dropped-games (filter #(contains? dropped-game-ids (:id %)) games)
+      missing-ids (filter #(not (contains? (set game-ids) %)) (range 1 total-games))]
+  (println "Found" (count dropped-games) "possibly dropped games out of a total of" total-games "games from" (count bots) "bots:")
   (print (str (->> dropped-games
                    (map :text)
                    sort)))
+  (println "Missing both replays for" (count missing-ids) "games:")
+  (println missing-ids)
+  (println "Number of possibly dropped games per bot:")
   (println (->> dropped-games
                 (map :vs)
                 frequencies
