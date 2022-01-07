@@ -13,6 +13,15 @@
              (Thread/sleep 200)
              (:body (client/get url)))))
 
+(defn get-vs
+  "Get name of opponent from replay name."
+  [bot text]
+  (let [bot (string/upper-case bot)
+        text (string/upper-case text)
+        a (subs text 5 9)
+        b (subs text 10 14)]
+    (if (string/starts-with? bot a) b a)))
+
 (defn get-games-for
   "Get list of games by bot."
   [bot]
@@ -24,7 +33,8 @@
          (re-seq #"(?i)<td><a href=\"(\S+\.rep)\">(.*)</a>")
          (map #(into {} {:id (Integer/parseInt (re-find #"\d+" (last %)))
                          :text (last %)
-                         :url (str url "/" (second %))}))
+                         :url (str url "/" (second %))
+                         :vs (get-vs bot (last %))}))
          (filter #(< (:id %) 5000)))))
 
 (let [bots (->> (str sscait-api-url "bots.php")
@@ -35,13 +45,18 @@
       games (flatten (map get-games-for bots))
       game-ids (map :id games)
       total-games (count (distinct game-ids))
-      dropped-games (->> game-ids
-                         frequencies
-                         (filter #(not (= 2 (last %))))
-                         (mapv first)
-                         set)]
+      dropped-game-ids (->> game-ids
+                            frequencies
+                            (filter #(not (= 2 (last %))))
+                            (mapv first)
+                            set)
+      dropped-games (filter #(contains? dropped-game-ids (:id %)) games)]
   (println "Found" (count dropped-games) "possibly dropped games out of a total of" total-games "games from" (count bots) "bots.")
-  (->>  games
-        (filter #(contains? dropped-games (:id %)))
-        (map :text)
-        sort))
+  (print (str (->> dropped-games
+                   (map :text)
+                   sort)))
+  (println (->> dropped-games
+                (map :vs)
+                frequencies
+                (sort-by second)
+                reverse)))
