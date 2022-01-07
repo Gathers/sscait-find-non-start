@@ -1,6 +1,8 @@
 (ns sscait-find-non-start.core
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
+            [clojure.java.io :as io]
+            [clojure.java.shell :as shell]
             [clojure.string :as string]))
 
 (def sscait-api-url "https://sscaitournament.com/api/")
@@ -22,6 +24,24 @@
         b (subs text 10 14)]
     (if (string/starts-with? bot a) b a)))
 
+(def analyze-with-screp
+  "Download and run SCREP on replay."
+  (memoize
+   (fn [url]
+     (let [filename (str "replays/" (last (string/split url #"/")))]
+       (io/make-parents filename)
+       (when-not (.exists (io/file filename))
+         (doall
+          (println "Downloading" filename)
+          (some->
+           (client/get url {:as :byte-array})
+           :body
+           (io/copy (io/file filename)))))
+       (->> filename
+            (shell/sh "replays/screp")
+            :out
+            json/read-str)))))
+
 (defn get-games-for
   "Get list of games by bot."
   [bot]
@@ -35,7 +55,13 @@
                          :text (last %)
                          :url (str url "/" (second %))
                          :vs (get-vs bot (last %))}))
-         (filter #(< (:id %) 5000)))))
+         (filter #(< (:id %) 5000))
+         (map #(assoc % :screp (analyze-with-screp (:url %))))
+         (map #(assoc % :min_cmds (as-> % x
+                                    (:screp x)
+                                    (get-in x ["Computed" "PlayerDescs"])
+                                    (map (fn [_] (_ "CmdCount")) x)
+                                    (reduce min x)))))))
 
 (let [bots (->> (str sscait-api-url "bots.php")
                 fetch-url
@@ -48,19 +74,46 @@
       dropped-game-ids (->> game-ids
                             frequencies
                             (filter #(not (= 2 (last %))))
-                            (mapv first)
-                            set)
-      dropped-games (filter #(contains? dropped-game-ids (:id %)) games)
-      missing-ids (filter #(not (contains? (set game-ids) %)) (range 1 total-games))]
-  (println "Found" (count dropped-games) "possibly dropped games out of a total of" total-games "games from" (count bots) "bots:")
+                            (map first)
+                            sort)
+      dropped-games (filter #(contains? (set dropped-game-ids) (:id %)) games)
+      missing-ids (filter #(not (contains? (set game-ids) %)) (range 1 total-games))
+      nostart-games (filter #(< (:min_cmds %) 5) games)
+      nostart-ids (->> nostart-games
+                       (map :id)
+                       distinct
+                       sort)]
+  (println "Found a total of" total-games "games from" (count bots) "bots.")
+  (println "\nMissing both replays for" (count missing-ids) "games:")
+  (println missing-ids)
+  (println "\nMissing one replay for" (count dropped-game-ids) "games:")
+  (println dropped-game-ids)
   (print (str (->> dropped-games
                    (map :text)
                    sort)))
-  (println "Missing both replays for" (count missing-ids) "games:")
-  (println missing-ids)
-  (println "Number of possibly dropped games per bot:")
+  (println "\nFound" (count nostart-ids) "games where at least one bot has less than 5 cmds:")
+  (println nostart-ids)
+  (print (str (->> nostart-games
+                   (map :text)
+                   sort)))
+  (println "\nFrequency of one missing replay per bot:")
   (println (->> dropped-games
                 (map :vs)
                 frequencies
+                (sort-by second)
+                reverse))
+  (println "\nFrequency of less than 5 cmds in replay per bot:")
+  (println (->> nostart-games
+                (map :vs)
+                frequencies
+                (sort-by second)
+                reverse))
+  (println "\nFrequency of min(cmds) in all replays ([min(cmds) occurances]):")
+  (println (->> games
+                (map :min_cmds)
+                frequencies
+                (filter #(< 1 (second %)))
+                sort
+                reverse
                 (sort-by second)
                 reverse)))
