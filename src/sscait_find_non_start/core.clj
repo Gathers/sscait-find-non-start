@@ -15,14 +15,13 @@
              (Thread/sleep 200)
              (:body (client/get url)))))
 
-(defn get-vs
-  "Get name of opponent from replay name."
-  [bot text]
-  (let [bot (string/upper-case bot)
-        text (string/upper-case text)
+(defn get-between
+  "Get short name of both bots from replay name."
+  [text]
+  (let [text (string/upper-case text)
         a (subs text 5 9)
         b (subs text 10 14)]
-    (if (string/starts-with? bot a) b a)))
+    [a b]))
 
 (def analyze-with-screp
   "Download and run SCREP on replay."
@@ -54,7 +53,7 @@
          (map #(into {} {:id (Integer/parseInt (re-find #"\d+" (last %)))
                          :text (last %)
                          :url (str url "/" (second %))
-                         :vs (get-vs bot (last %))}))
+                         :between (get-between (last %))}))
          (filter #(<= (:id %) max-id))
          (map #(assoc % :screp (analyze-with-screp (:url %))))
          (map #(assoc % :min_cmds (as-> % x
@@ -98,15 +97,17 @@
   (print (str (->> nostart-games
                    (map :text)
                    sort)))
-  (println "\nFrequency of one missing replay per bot:")
+  (println "\nNumber of times each bot was in a game where any bot has a missing replay:")
   (println (->> dropped-games
-                (map :vs)
+                (map :between)
+                (reduce concat)
                 frequencies
                 (sort-by second)
                 reverse))
-  (println "\nFrequency of less than 5 cmds in replay per bot:")
+  (println "\nNumber of times each bot was in a replay where any bot had less than 5 cmds:")
   (println (->> nostart-games
-                (map :vs)
+                (map :between)
+                (reduce concat)
                 frequencies
                 (sort-by second)
                 reverse))
