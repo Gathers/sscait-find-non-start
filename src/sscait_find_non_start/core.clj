@@ -44,7 +44,7 @@
 
 (defn get-games-for
   "Get list of games by bot."
-  [bot]
+  [max-id bot]
   (let [url  (->> (string/escape (java.net.URLEncoder/encode bot) {\+ "%20"})
                   string/upper-case
                   (str sscait-replays-url))]
@@ -55,7 +55,7 @@
                          :text (last %)
                          :url (str url "/" (second %))
                          :vs (get-vs bot (last %))}))
-         (filter #(< (:id %) 2971))
+         (filter #(<= (:id %) max-id))
          (map #(assoc % :screp (analyze-with-screp (:url %))))
          (map #(assoc % :min_cmds (as-> % x
                                     (:screp x)
@@ -68,7 +68,9 @@
                 json/read-str
                 (filter #(= (get % "status") "Enabled"))
                 (map #(% "name")))
-      games (flatten (map get-games-for bots))
+      total-bots (count bots)
+      total-rr-games (* total-bots (dec total-bots))
+      games (flatten (map (partial get-games-for total-rr-games) bots))
       game-ids (map :id games)
       total-games (count (distinct game-ids))
       dropped-game-ids (->> game-ids
@@ -77,13 +79,13 @@
                             (map first)
                             sort)
       dropped-games (filter #(contains? (set dropped-game-ids) (:id %)) games)
-      missing-ids (filter #(not (contains? (set game-ids) %)) (range 1 total-games))
+      missing-ids (filter #(not (contains? (set game-ids) %)) (range 1 (inc total-rr-games)))
       nostart-games (filter #(< (:min_cmds %) 5) games)
       nostart-ids (->> nostart-games
                        (map :id)
                        distinct
                        sort)]
-  (println "Found a total of" total-games "games from" (count bots) "bots.")
+  (println "Found a total of" total-games "games from" total-bots "bots, expecting" total-rr-games "games.")
   (println "\nMissing both replays for" (count missing-ids) "games:")
   (println missing-ids)
   (println "\nMissing one replay for" (count dropped-game-ids) "games:")
