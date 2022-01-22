@@ -55,7 +55,7 @@
                          :text (last %)
                          :url (str url "/" (second %))
                          :vs (get-vs bot (last %))}))
-         (filter #(< (:id %) 5000))
+         (filter #(< (:id %) 2971))
          (map #(assoc % :screp (analyze-with-screp (:url %))))
          (map #(assoc % :min_cmds (as-> % x
                                     (:screp x)
@@ -112,7 +112,7 @@
   (println (->> games
                 (map :min_cmds)
                 frequencies
-                (filter #(< 1 (second %)))
+                (filter #(< 3 (second %)))
                 sort
                 reverse
                 (sort-by second)
