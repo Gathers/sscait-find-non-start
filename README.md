@@ -47,7 +47,10 @@ This was the output when I ran it after the round-robin had ended:
         Estimated number of less than 5 cmds no-start wins per bot:
         ([Steamhammer 10] [legacy 10] [MadMixP 9] [ZurZurZur 9] [McRaveZ 8] [NiteKatT 7] [Florian Richoux 6] [Hao Pan 6] [Yuanheng Zhu 6] [insanitybot 6] [Pathos 6] [Matej Istenik 6] [BananaBrain 6] [Iron bot 6] [Bryan Weber 6] [Boris 6] [Stardust 6] [AILien 5] [Junkbot 5] [KaonBot 5] [Arrakhammer 5] [StyxZ 5] [Tomas Vajda 5] [JumpyDoggoBot 5] [Simplicity 5] [Proxy 5] [BetaStar 4] [Lukas Moravec 4] [CUBOT 4] [Dragon 4] [Sijia Xu 4] [TyrProtoss 4] [WuliBot 4] [Flash 4] [Tomas Cere 4] [Andrew Smith 4] [krasi0P 4] [ICELab 4] [Microwave 4] [Soeren Klett 3] [Aurelien Lermant 3] [XIAOYICOG2019 3] [Monster 3] [MegaBot2017 3] [Ecgberht 3] [PurpleWave 3] [KasoBot 3] [Chris Coxe 2] [NuiBot 2] [NLPRbot 2] [Martin Rooijackers 2] [Marine Hell 2] [WillyT 2] [Dave Churchill 2])
 
-        Frequency of min(cmds) in all replays ([min(cmds) occurances]):
+        Frequency of frames in all games ([frames occurances], skipped when frames above 6000):
+        ([79 86] [203 1] [513 1] [1598 1] [2001 1] [2125 1] [2311 1] [2528 1] [2590 1] [2776 1] [2869 1] [3055 1] [3272 1] [3334 1] [3365 2] [3427 1] [3520 1] [3582 2] [3706 2] [3768 1] [3799 1] [3892 2] [3954 1] [4078 1] [4153 1] [4171 2] [4221 1] [4344 1] [4419 1] [4481 1] [4496 1] [4497 1] [4503 1] [4504 1] [4543 1] [4574 1] [4605 3] [4698 2] [4760 3] [4791 2] [4822 1] [4853 3] [4884 2] [4915 7] [4946 6] [4977 1] [5008 7] [5039 7] [5070 6] [5101 7] [5132 14] [5163 18] [5194 39] [5225 30] [5256 15] [5287 6] [5318 5] [5349 8] [5380 9] [5411 1] [5442 2] [5473 1] [5504 2] [5535 2] [5566 2] [5628 2] [5659 3] [5690 1] [5721 3] [5752 2] [5783 1] [5814 1] [5845 1] [5876 2] [5907 4] [5938 5] [5969 2])
+
+        Frequency of min(cmds) in all replays ([min(cmds) occurances], skipped when occurances below 4):
         ([1 252] [0 19] [376 6] [3 5] [11 5] [2 4] [5 4] [480 4])
 
 The win/loss estimates seem correct for MadMixP but all output may be incorrect because of bugs.

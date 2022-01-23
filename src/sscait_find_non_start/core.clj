@@ -74,8 +74,12 @@
       game-cmds-map (->> games
                          (map #(into {} {(:id %) (:names_cmds %)}))
                          (reduce (partial merge-with (partial merge-with max))))
+      game-frames-map (->> games
+                           (map #(into {} {(:id %) (get-in % [:screp "Header" "Frames"])}))
+                           (reduce (partial merge-with max)))
       nostart-cmds-map (->> game-cmds-map
                             seq
+                            (filter #(<= 50 (game-frames-map (first %))))
                             (filter #(> 5 (reduce min (vals (second %))))))
       nostart-ids (sort (keys nostart-cmds-map))
       dropped-game-ids (->> game-ids
@@ -135,7 +139,15 @@
                 frequencies
                 (sort-by second)
                 reverse))
-  (println "\nFrequency of min(cmds) in all replays ([min(cmds) occurances]):")
+  (println "\nFrequency of frames in all games ([frames occurances], skipped when frames above 6000):")
+  (println (->> game-frames-map
+                vals
+                frequencies
+                (filter #(> 5999 (first %)))
+                reverse
+                (sort-by second)
+                sort))
+  (println "\nFrequency of min(cmds) in all replays ([min(cmds) occurances], skipped when occurances below 4):")
   (println (->> games
                 (map #(reduce min (vals (:names_cmds %))))
                 frequencies
