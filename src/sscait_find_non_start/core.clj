@@ -59,7 +59,6 @@
          (filter #(<= (:id %) max-id))
          (map #(assoc % :screp (analyze-with-screp (:url %))))
          (map #(assoc % :names_cmds (get-names-and-cmds %)))
-         (map #(assoc % :min_cmds (reduce min (vals (:names_cmds %)))))
          (map #(assoc % :between (keys (:names_cmds %)))))))
 
 (let [bots (->> (str sscait-api-url "bots.php")
@@ -138,7 +137,7 @@
                 reverse))
   (println "\nFrequency of min(cmds) in all replays ([min(cmds) occurances]):")
   (println (->> games
-                (map :min_cmds)
+                (map #(reduce min (vals (:names_cmds %))))
                 frequencies
                 (filter #(< 3 (second %)))
                 sort
