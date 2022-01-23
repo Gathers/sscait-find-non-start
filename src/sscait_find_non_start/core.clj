@@ -39,9 +39,13 @@
   (let [screp (:screp game)
         names-to-id (->> (get-in screp ["Header" "Players"])
                          (map #(into {} {(get % "ID") (get % "Name")}))
-                         (reduce merge))]
+                         (reduce merge))
+        chats (->> (get-in screp ["Computed" "ChatCmds"])
+                   (map #(get % "PlayerID"))
+                   frequencies)]
     (->> (get-in screp ["Computed" "PlayerDescs"])
-         (map #(into {} {(names-to-id (get % "PlayerID")) (get % "CmdCount")}))
+         (map #(into {} {(names-to-id (get % "PlayerID")) (- (get % "CmdCount")
+                                                             (get chats (get % "PlayerID") 0))}))
          (reduce merge))))
 
 (defn get-games-for
@@ -97,7 +101,7 @@
   (print (str (->> dropped-games
                    (map :text)
                    sort)))
-  (println "\nFound" (count nostart-ids) "games where at least one bot has less than 5 cmds:")
+  (println "\nFound" (count nostart-ids) "games where at least one bot has less than 5 non-chat cmds:")
   (println nostart-ids)
   (print (str (->> games
                    (filter #(contains? (set nostart-ids) (:id %)))
@@ -110,7 +114,7 @@
                 frequencies
                 (sort-by second)
                 reverse))
-  (println "\nNumber of times each bot was in a game where any bot had less than 5 cmds:")
+  (println "\nNumber of times each bot was in a game where any bot had less than 5 non-chat cmds:")
   (println (->> nostart-cmds-map
                 (map second)
                 (map seq)
@@ -119,7 +123,7 @@
                 frequencies
                 (sort-by second)
                 reverse))
-  (println "\nEstimated number of less than 5 cmds no-start losses per bot:")
+  (println "\nEstimated number of less than 5 non-chat cmds no-start losses per bot:")
   (println (->> nostart-cmds-map
                 (map second)
                 (map seq)
@@ -129,7 +133,7 @@
                 frequencies
                 (sort-by second)
                 reverse))
-  (println "\nEstimated number of less than 5 cmds no-start wins per bot:")
+  (println "\nEstimated number of less than 5 non-chat cmds no-start wins per bot:")
   (println (->> nostart-cmds-map
                 (map second)
                 (map seq)
@@ -147,11 +151,11 @@
                 reverse
                 (sort-by second)
                 sort))
-  (println "\nFrequency of min(cmds) in all replays ([min(cmds) occurances], skipped when occurances below 4):")
+  (println "\nFrequency of min(cmds) in all replays ([min(cmds) occurances], skipped when occurances below 5, not counting chat):")
   (println (->> games
                 (map #(reduce min (vals (:names_cmds %))))
                 frequencies
-                (filter #(< 3 (second %)))
+                (filter #(< 4 (second %)))
                 sort
                 reverse
                 (sort-by second)
